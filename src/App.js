@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import { API } from 'aws-amplify';
+import { API, Auth } from 'aws-amplify';
 import { withAuthenticator, AmplifySignOut } from '@aws-amplify/ui-react';
 import { listNotes } from './graphql/queries';
 import { createNote as createNoteMutation, deleteNote as deleteNoteMutation } from './graphql/mutations';
+import axios from 'axios';
 
 const initialFormState = { name: '', description: '' }
 
@@ -11,8 +12,21 @@ function App() {
   const [notes, setNotes] = useState([]);
   const [formData, setFormData] = useState(initialFormState);
 
+
   useEffect(() => {
     fetchNotes();
+    Auth.currentAuthenticatedUser()
+      .then(user => {
+        axios.get('https://gavwmj3myf.execute-api.us-east-2.amazonaws.com/dev/docker-function-resource', {
+          headers: {
+            'Authorization': user.signInUserSession.idToken.jwtToken
+          }
+        })
+        .then(res => {
+          const data = res.data;
+          console.log({data})
+        })
+      })
   }, []);
 
   async function fetchNotes() {
