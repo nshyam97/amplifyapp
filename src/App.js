@@ -6,7 +6,7 @@ import { listNotes } from './graphql/queries';
 import { createNote as createNoteMutation, deleteNote as deleteNoteMutation } from './graphql/mutations';
 import axios from 'axios';
 
-const initialFormState = { name: '', description: '' }
+const initialFormState = { name: '', description: '', bloodLevel: '' }
 
 function App() {
   const [notes, setNotes] = useState([]);
@@ -35,7 +35,7 @@ function App() {
   }
 
   async function createNote() {
-    if (!formData.name || !formData.description) return;
+    if (!formData.name || !formData.description || !formData.bloodLevel) return;
     await API.graphql({ query: createNoteMutation, variables: { input: formData } });
     setNotes([ ...notes, formData ]);
     setFormData(initialFormState);
@@ -59,6 +59,11 @@ function App() {
         onChange={e => setFormData({ ...formData, 'description': e.target.value})}
         placeholder="Note description"
         value={formData.description}
+      />
+      <input
+        onChange={e => setFormData({ ...formData, 'bloodLevel': e.target.value})}
+        placeholder="Blood Level"
+        value={formData.bloodLevel}
       />
       <button onClick={createNote}>Create Note</button>
       <div style={{marginBottom: 30}}>
