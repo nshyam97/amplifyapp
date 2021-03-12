@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import { API, Auth } from 'aws-amplify';
+import { API, Auth, Amplify } from 'aws-amplify';
+import AWSAppSyncClient, { AUTH_TYPE } from 'aws-appsync';
+import awsconfig from './aws-exports';
 import { withAuthenticator, AmplifySignOut } from '@aws-amplify/ui-react';
 import { listNotes } from './graphql/queries';
 import { createNote as createNoteMutation, deleteNote as deleteNoteMutation } from './graphql/mutations';
@@ -8,25 +10,26 @@ import axios from 'axios';
 
 const initialFormState = { name: '', description: '', bloodLevel: '' }
 
+Amplify.configure(awsconfig);
+
+const client = new AWSAppSyncClient({
+  url: awsconfig.aws_appsync_graphqlEndpoint,
+  region: awsconfig.aws_appsync_region,
+  auth: {
+    type: AUTH_TYPE.AMAZON_COGNITO_USER_POOLS,
+    jwtToken: async () => (await Auth.currentSession()).getIdToken().getJwtToken(),
+  },
+});
+
 function App() {
   const [notes, setNotes] = useState([]);
   const [formData, setFormData] = useState(initialFormState);
+  const [loading, setLoading] = useState(false);
 
 
   useEffect(() => {
+    getData();
     fetchNotes();
-    Auth.currentAuthenticatedUser()
-      .then(user => {
-        axios.get('https://gavwmj3myf.execute-api.us-east-2.amazonaws.com/dev/docker-function-resource', {
-          headers: {
-            'Authorization': user.signInUserSession.idToken.jwtToken
-          }
-        })
-        .then(res => {
-          const data = res.data;
-          console.log({data})
-        })
-      })
   }, []);
 
   async function fetchNotes() {
@@ -45,6 +48,23 @@ function App() {
     const newNotesArray = notes.filter(note => note.id !== id);
     setNotes(newNotesArray);
     await API.graphql({ query: deleteNoteMutation, variables: { input: { id } }});
+  }
+
+  async function getData() {
+    setLoading(true);
+    Auth.currentAuthenticatedUser()
+      .then(user => {
+        axios.get('https://gavwmj3myf.execute-api.us-east-2.amazonaws.com/dev/docker-function-resource', {
+          headers: {
+            'Authorization': user.signInUserSession.idToken.jwtToken
+          }
+        })
+        .then(res => {
+          setLoading(false);
+          const data = res.data;
+          console.log({data})
+        })
+      })
   }
 
   return (
@@ -66,6 +86,7 @@ function App() {
         value={formData.bloodLevel}
       />
       <button onClick={createNote}>Create Note</button>
+      {loading ? <div>Loading Spinner here</div> : <div>Fully loaded</div>}
       <div style={{marginBottom: 30}}>
         {
           notes.map(note => (
