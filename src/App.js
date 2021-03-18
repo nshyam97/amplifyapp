@@ -26,6 +26,11 @@ function App() {
   const [formData, setFormData] = useState(initialFormState);
   const [loading, setLoading] = useState(false);
 
+  const data = {
+    'key1': 'value1',
+    'key2': 'value2',
+    'key3': 'value3'
+  }
 
   useEffect(() => {
     getData();
@@ -54,13 +59,10 @@ function App() {
     setLoading(true);
     Auth.currentAuthenticatedUser()
       .then(user => {
-        axios.post('https://gavwmj3myf.execute-api.us-east-2.amazonaws.com/dev/docker-function-resource', {
+        axios.post('https://gavwmj3myf.execute-api.us-east-2.amazonaws.com/dev/docker-function-resource', data, {
           headers: {
             'Authorization': user.signInUserSession.idToken.jwtToken
           },
-          body: {
-            key1: 'This is a test'
-          }
         })
         .then(res => {
           setLoading(false);
