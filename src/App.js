@@ -61,6 +61,7 @@ function App() {
       .then(user => {
         axios.post('https://gavwmj3myf.execute-api.us-east-2.amazonaws.com/dev/docker-function-resource', data, {
           headers: {
+            'Content-Type': 'application/json',
             'Authorization': user.signInUserSession.idToken.jwtToken
           },
         })
