@@ -54,9 +54,12 @@ function App() {
     setLoading(true);
     Auth.currentAuthenticatedUser()
       .then(user => {
-        axios.get('https://gavwmj3myf.execute-api.us-east-2.amazonaws.com/dev/docker-function-resource', {
+        axios.post('https://gavwmj3myf.execute-api.us-east-2.amazonaws.com/dev/docker-function-resource', {
           headers: {
             'Authorization': user.signInUserSession.idToken.jwtToken
+          },
+          body: {
+            key1: 'This is a test'
           }
         })
         .then(res => {
